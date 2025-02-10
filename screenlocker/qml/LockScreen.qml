@@ -1,24 +1,10 @@
-/*
- * Copyright (C) 2021 CuteOS Team.
- *
- * Author:     Rion Wong <reionwong@gmail.com>
- *             kylinos@kylinsec.com.cn
- * Copyright (C) 2025 fQwQf <fQwQf6outlook.com>
- *
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+ /*
+  * SPDX-FileCopyrightText: 2021 Rion Wong <reionwong@gmail.com>
+  * SPDX-FileCopyrightText: 2025 kylinos <kylinos@kylinsec.com.cn>
+  * SPDX-FileCopyrightText: 2025 fQwQf <fQwQf6outlook.com>
+  *
+  * SPDX-License-Identifier: GPL-3.0
+  */
 
 import QtQuick 2.12
 import QtQuick.Window 2.12
@@ -35,7 +21,8 @@ Item {
 
     property string notification
 
-    property int emptyAttempts: 0 // 新增空密码尝试计数器
+    // 空密码尝试计数器
+    property int emptyAttempts: 0
 
     LayoutMirroring.enabled: Qt.locale().textDirection === Qt.RightToLeft
     LayoutMirroring.childrenInherit: true
@@ -332,6 +319,16 @@ Item {
         }
     }
 
+    
+    /**
+    * Unlock screenlocker. 
+    * Now it will promote user to set a password in tty if they do not have a 
+    * password set already.
+    *
+    * @param none
+    * @internal
+    * @since version 1.0
+    */
     function tryUnlock() {
         //Well it's possible that the password is empty
         if (!password.text) {
@@ -339,22 +336,14 @@ Item {
             notificationResetTimer.start()
             // 根据尝试次数显示不同提示
             if (root.emptyAttempts >= 3) {
-                root.notification = qsTr("Set Non-empty Password")
+                root.notification = qsTr("Set non-empty password in tty please!")
             } else {
-                root.notification = qsTr("Please enter your password")
+                root.notification = qsTr("Please enter your password!")
             }
             return
         } else {
             root.emptyAttempts = 0 // 有效输入时重置计数器
         }
-
-
-        /*if (!password.text) {
-            notificationResetTimer.start()
-            root.notification = qsTr("Please enter your password")
-            return
-        }*/
-
         authenticator.tryUnlock(password.text)
     }
 
