@@ -4,22 +4,26 @@
 <context>
     <name>LockScreen</name>
     <message>
-        <location filename="../screenlocker/qml/LockScreen.qml" line="202"/>
+        <location filename="../screenlocker/qml/LockScreen.qml" line="236"/>
         <source>Password</source>
         <translation>Passord</translation>
     </message>
     <message>
-        <location filename="../screenlocker/qml/LockScreen.qml" line="225"/>
         <source>Unlock</source>
-        <translation>Lås opp</translation>
+        <translation type="vanished">Lås opp</translation>
     </message>
     <message>
-        <location filename="../screenlocker/qml/LockScreen.qml" line="274"/>
+        <location filename="../screenlocker/qml/LockScreen.qml" line="342"/>
+        <source>Set Non-empty Password</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../screenlocker/qml/LockScreen.qml" line="344"/>
         <source>Please enter your password</source>
         <translation>Skriv inn passordet ditt</translation>
     </message>
     <message>
-        <location filename="../screenlocker/qml/LockScreen.qml" line="284"/>
+        <location filename="../screenlocker/qml/LockScreen.qml" line="372"/>
         <source>Unlocking failed</source>
         <translation>Opplåsing mislyktes</translation>
     </message>

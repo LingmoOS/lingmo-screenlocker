@@ -4,22 +4,26 @@
 <context>
     <name>LockScreen</name>
     <message>
-        <location filename="../screenlocker/qml/LockScreen.qml" line="202"/>
+        <location filename="../screenlocker/qml/LockScreen.qml" line="236"/>
         <source>Password</source>
         <translation>パスワード</translation>
     </message>
     <message>
-        <location filename="../screenlocker/qml/LockScreen.qml" line="225"/>
         <source>Unlock</source>
-        <translation>ロックを解除</translation>
+        <translation type="vanished">ロックを解除</translation>
     </message>
     <message>
-        <location filename="../screenlocker/qml/LockScreen.qml" line="274"/>
+        <location filename="../screenlocker/qml/LockScreen.qml" line="342"/>
+        <source>Set Non-empty Password</source>
+        <translation>パスワードが空である場合は、認証プロセスが正常に動作するように空でないパスワードを設定してください。</translation>
+    </message>
+    <message>
+        <location filename="../screenlocker/qml/LockScreen.qml" line="344"/>
         <source>Please enter your password</source>
         <translation>パスワードを入力してください</translation>
     </message>
     <message>
-        <location filename="../screenlocker/qml/LockScreen.qml" line="284"/>
+        <location filename="../screenlocker/qml/LockScreen.qml" line="372"/>
         <source>Unlocking failed</source>
         <translation>ロックの解除に失敗しました</translation>
     </message>
