@@ -52,6 +52,11 @@ option(PAM_REQUIRED "Require building with PAM" ON)
 
 include(ConfigureChecks.cmake)
 
+# PAM service used to check the password (see ConfigureChecks.cmake)
+if (PAM_FOUND)
+    install(FILES pam/lingmo-screenlocker DESTINATION ${CMAKE_INSTALL_FULL_SYSCONFDIR}/pam.d)
+endif()
+
 configure_file(config-workspace.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-workspace.h)
 configure_file(config-unix.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-unix.h )
 configure_file(config-X11.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-X11.h)
