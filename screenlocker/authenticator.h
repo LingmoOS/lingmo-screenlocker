@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef AUTHENTICATOR_H
 #define AUTHENTICATOR_H
 
+#include <QElapsedTimer>
 #include <QObject>
 
 class QSocketNotifier;
@@ -35,14 +36,24 @@ class Authenticator : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(bool graceLocked READ isGraceLocked NOTIFY graceLockedChanged)
+    // Fingerprint login is enabled and a fingerprint conversation is running
+    Q_PROPERTY(bool fingerprintAvailable READ isFingerprintAvailable NOTIFY fingerprintAvailableChanged)
 public:
     explicit Authenticator(AuthenticationMode mode = AuthenticationMode::Direct, QObject *parent = nullptr);
     ~Authenticator() override;
 
     bool isGraceLocked() const;
+    bool isFingerprintAvailable() const;
 
 public Q_SLOTS:
     void tryUnlock(const QString &password);
+
+    // Runs the "lingmo-screenlocker-fingerprint" PAM service next to the
+    // password one when /etc/lingmo-fingerprint-enabled exists, so a finger
+    // unlocks without typing anything. Restarted after each attempt.
+    void startFingerprint();
+    // Key or mouse input: restarts the fingerprint conversation if it went idle.
+    void userActivity();
 
 Q_SIGNALS:
     void failed();
@@ -50,18 +61,31 @@ Q_SIGNALS:
     void graceLockedChanged();
     void message(const QString &msg); // don't remove the "msg" param, used in QML!!!
     void error(const QString &err); // don't remove the "err" param, used in QML!!!
+    void fingerprintAvailableChanged();
+    void fingerprintError(const QString &err); // e.g. "Failed to match fingerprint", used in QML
 
 private:
     void setupCheckPass();
+    void onFingerprintFailed();
     QTimer *m_graceLockTimer;
     KCheckPass *m_checkPass;
+
+    KCheckPass *m_fingerprint = nullptr;
+    QTimer *m_fingerprintRestartTimer;
+    QElapsedTimer m_fingerprintElapsed;
+    int m_fingerprintQuickFailures = 0;
+    int m_fingerprintRounds = 0;
+    bool m_fingerprintDisabled = false;
 };
 
 class KCheckPass : public QObject
 {
     Q_OBJECT
 public:
-    explicit KCheckPass(AuthenticationMode mode, QObject *parent = nullptr);
+    // method selects the PAM service: "classic" is lingmo-screenlocker,
+    // anything else lingmo-screenlocker-<method>
+    explicit KCheckPass(AuthenticationMode mode, QObject *parent = nullptr,
+                        const QString &method = QStringLiteral("classic"));
     ~KCheckPass() override;
 
     void start();
@@ -106,6 +130,7 @@ private:
     int m_fd;
     bool m_ready = false;
     AuthenticationMode m_mode;
+    QString m_method;
 };
 
 #endif

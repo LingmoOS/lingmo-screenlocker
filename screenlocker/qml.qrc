@@ -5,6 +5,7 @@
         <file>qml/LoginButton.qml</file>
         <file>images/screensaver-unlock-symbolic.svg</file>
         <file>images/system-lock-screen-symbolic.svg</file>
+        <file>images/fingerprint-symbolic.svg</file>
         <file>qml/MprisItem.qml</file>
         <file>images/media-cover.svg</file>
         <file>images/light/media-playback-pause-symbolic.svg</file>

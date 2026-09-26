@@ -266,6 +266,41 @@ Item {
                 }
             }
 
+            // Fingerprint login is on: the finger works without typing anything
+            RowLayout {
+                visible: authenticator.fingerprintAvailable
+                spacing: LingmoUI.Units.smallSpacing
+                Layout.alignment: Qt.AlignHCenter
+                Layout.maximumWidth: _mainLayout.width
+                Layout.topMargin: LingmoUI.Units.smallSpacing
+
+                Item {
+                    Layout.preferredWidth: 16
+                    Layout.preferredHeight: 16
+
+                    Image {
+                        id: fingerprintIcon
+                        anchors.fill: parent
+                        source: "qrc:/images/fingerprint-symbolic.svg"
+                        sourceSize: Qt.size(16, 16)
+                        visible: false
+                    }
+
+                    ColorOverlay {
+                        anchors.fill: fingerprintIcon
+                        source: fingerprintIcon
+                        color: LingmoUI.Theme.textColor
+                    }
+                }
+
+                Label {
+                    text: qsTr("Touch the fingerprint reader or type your password")
+                    wrapMode: Text.WordWrap
+                    horizontalAlignment: Text.AlignHCenter
+                    Layout.maximumWidth: _mainLayout.width - 16 - LingmoUI.Units.smallSpacing
+                }
+            }
+
             Item {
                 height: 1
             }
@@ -376,6 +411,12 @@ Item {
 
         function onError(text) {
             notificationResetTimer.start()
+            root.notification = text
+        }
+
+        // pam_fprintd: "Failed to match fingerprint" and the like
+        function onFingerprintError(text) {
+            notificationResetTimer.restart()
             root.notification = text
         }
     }

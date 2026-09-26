@@ -9,7 +9,12 @@
         <translation>Senha</translation>
     </message>
     <message>
-        <location line="+116"/>
+        <location line="+74"/>
+        <source>Touch the fingerprint reader or type your password</source>
+        <translation>Toque no leitor de digital ou digite a senha</translation>
+    </message>
+    <message>
+        <location line="+77"/>
         <source>Set non-empty password in tty please!</source>
         <translation>Defina uma senha não vazia em um terminal (TTY)!</translation>
     </message>

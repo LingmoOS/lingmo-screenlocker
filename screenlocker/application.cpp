@@ -256,6 +256,9 @@ void Application::markViewsAsVisible(QQuickView *view)
 
     // random state update, actually rather required on init only
     QMetaObject::invokeMethod(this, "getFocus", Qt::QueuedConnection);
+
+    // The lock screen is up: let a finger unlock it without typing anything
+    m_authenticator->startFingerprint();
 }
 
 bool Application::eventFilter(QObject *obj, QEvent *event)
@@ -276,6 +279,11 @@ bool Application::eventFilter(QObject *obj, QEvent *event)
         }
         // no further processing
         return false;
+    }
+
+    if (event->type() == QEvent::KeyPress || event->type() == QEvent::MouseButtonPress
+            || event->type() == QEvent::MouseMove) {
+        m_authenticator->userActivity();
     }
 
     if (event->type() == QEvent::MouseButtonPress && isPlatformX11()) {
