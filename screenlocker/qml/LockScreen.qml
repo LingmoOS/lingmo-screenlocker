@@ -10,11 +10,11 @@ import QtQuick 2.12
 import QtQuick.Window 2.12
 import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
-import QtGraphicalEffects 1.0
+import Qt5Compat.GraphicalEffects
 
 import Lingmo.Accounts 1.0 as Accounts
 import Lingmo.System 1.0 as System
-import LingmoUI 1.0 as CuteUI
+import LingmoUI.CompatibleModule 3.0 as LingmoUI
 
 Item {
     id: root
@@ -34,7 +34,7 @@ Item {
     Image {
         id: wallpaperImage
         anchors.fill: parent
-        source: "file://" + wallpaper.path
+        source: wallpaper.path ? "file://" + wallpaper.path : ""
         sourceSize: Qt.size(width * Screen.devicePixelRatio,
                             height * Screen.devicePixelRatio)
         fillMode: Image.PreserveAspectCrop
@@ -106,7 +106,7 @@ Item {
         Label {
             id: timeLabel
 //            anchors.top: icon.bottom
-//            anchors.topMargin: CuteUI.Units.largeSpacing
+//            anchors.topMargin: LingmoUI.Units.largeSpacing
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.verticalCenter: parent.verticalCenter
             Layout.alignment: Qt.AlignHCenter
@@ -121,7 +121,7 @@ Item {
         Label {
             id: dateLabel
             anchors.top: timeLabel.bottom
-            anchors.topMargin: CuteUI.Units.largeSpacing
+            anchors.topMargin: LingmoUI.Units.largeSpacing
             anchors.horizontalCenter: parent.horizontalCenter
             font.pointSize: 19
             color: "white"
@@ -163,23 +163,23 @@ Item {
     Item {
         id: _mainItem
         anchors.centerIn: parent
-        width: 280 + CuteUI.Units.largeSpacing * 3
-        height: _mainLayout.implicitHeight + CuteUI.Units.largeSpacing * 4
+        width: 280 + LingmoUI.Units.largeSpacing * 3
+        height: _mainLayout.implicitHeight + LingmoUI.Units.largeSpacing * 4
 
         Layout.alignment: Qt.AlignHCenter
 
         Rectangle {
             anchors.fill: parent
-            radius: CuteUI.Theme.bigRadius + 2
-            color: CuteUI.Theme.darkMode ? "#424242" : "white"
+            radius: LingmoUI.Theme.bigRadius + 2
+            color: LingmoUI.Theme.darkMode ? "#424242" : "white"
             opacity: 0.5
         }
 
         ColumnLayout {
             id: _mainLayout
             anchors.fill: parent
-            anchors.margins: CuteUI.Units.largeSpacing * 1.5
-            spacing: CuteUI.Units.smallSpacing * 1.5
+            anchors.margins: LingmoUI.Units.largeSpacing * 1.5
+            spacing: LingmoUI.Units.smallSpacing * 1.5
 
             Image {
                 id: userIcon
@@ -221,16 +221,16 @@ Item {
                 Layout.preferredHeight: 36
                 Layout.fillWidth: true
                 placeholderText: qsTr("Password")
-                leftPadding: CuteUI.Units.largeSpacing
-                rightPadding: 36 + CuteUI.Units.largeSpacing //CuteUI.Units.largeSpacing
+                leftPadding: LingmoUI.Units.largeSpacing
+                rightPadding: 36 + LingmoUI.Units.largeSpacing //LingmoUI.Units.largeSpacing
                 enabled: !authenticator.graceLocked
                 focus: true
 
                 echoMode: TextInput.Password
 
                 background: Rectangle {
-                    color: CuteUI.Theme.darkMode ? "#B6B6B6" : "white"
-                    // radius: CuteUI.Theme.bigRadius
+                    color: LingmoUI.Theme.darkMode ? "#B6B6B6" : "white"
+                    // radius: LingmoUI.Theme.bigRadius
                     opacity: 0.5
                 }
 
@@ -260,7 +260,7 @@ Item {
 
                         Rectangle {
                             anchors.fill: parent
-                            radius: CuteUI.Theme.mediumRadius
+                            radius: LingmoUI.Theme.mediumRadius
                         }
                     }
                 }
@@ -275,7 +275,7 @@ Item {
     Label {
         id: message
         anchors.top: _mainItem.bottom
-        anchors.topMargin: CuteUI.Units.largeSpacing
+        anchors.topMargin: LingmoUI.Units.largeSpacing
         anchors.horizontalCenter: parent.horizontalCenter
         font.bold: true
         color: "white"
@@ -306,12 +306,12 @@ Item {
 
     Item {
         // anchors.top: message.bottom
-        // anchors.topMargin: CuteUI.Units.largeSpacing
+        // anchors.topMargin: LingmoUI.Units.largeSpacing
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: root.height * 0.05 //CuteUI.Units.largeSpacing
+        anchors.bottomMargin: root.height * 0.05 //LingmoUI.Units.largeSpacing
         anchors.horizontalCenter: parent.horizontalCenter
 
-        width: 280 + CuteUI.Units.largeSpacing * 3
+        width: 280 + LingmoUI.Units.largeSpacing * 3
         height: 70
 
         MprisItem {

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.18)
 
 project(screenlocker)
 set(CMAKE_C_STANDARD 99)
@@ -17,9 +17,10 @@ include(CheckIncludeFile)
 include(CheckIncludeFiles)
 include(CheckSymbolExists)
 include(FeatureSummary)
+include(GNUInstallDirs)
 
-find_package(Qt5 COMPONENTS Core DBus Widgets X11Extras Quick LinguistTools REQUIRED)
-find_package(X11)
+find_package(Qt6 CONFIG REQUIRED COMPONENTS Core Gui DBus Quick LinguistTools)
+find_package(X11 REQUIRED)
 
 # ----------- Check --------------------
 
@@ -66,30 +67,13 @@ add_subdirectory(checkpass)
 feature_summary(WHAT ALL INCLUDE_QUIET_PACKAGES FATAL_ON_MISSING_REQUIRED_PACKAGES)
 
 
-# Get the installation directory from qmake
-get_target_property(QT_QMAKE_EXECUTABLE ${Qt5Core_QMAKE_EXECUTABLE} IMPORTED_LOCATION)
-if(NOT QT_QMAKE_EXECUTABLE)
-    message(FATAL_ERROR "qmake is not found.")
-endif()
-
-execute_process(COMMAND ${QT_QMAKE_EXECUTABLE} -query QT_INSTALL_QML
-    OUTPUT_VARIABLE INSTALL_QMLDIR
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-)
-if(INSTALL_QMLDIR)
-    message(STATUS "qml directory:" "${INSTALL_QMLDIR}")
-else()
-    message(FATAL_ERROR "qml directory cannot be detected.")
-endif()
-
 # Install translations
 file(GLOB TS_FILES translations/*.ts)
 foreach(filepath ${TS_FILES})
     string(REPLACE "${CMAKE_CURRENT_SOURCE_DIR}/" "" filename ${filepath})
     list(APPEND ts_files_replaced ${filename})
 endforeach()
-qt5_create_translation(QM_FILES ${CMAKE_CURRENT_SOURCE_DIR} ${ts_files_replaced})
-add_custom_target(translations DEPENDS ${QM_FILES} SOURCES ${ts_files_replaced})
-add_dependencies(lingmo-screenlocker translations)
+qt_add_translation(QM_FILES ${ts_files_replaced})
+add_custom_target(translations ALL DEPENDS ${QM_FILES} SOURCES ${ts_files_replaced})
 install(FILES ${QM_FILES} DESTINATION /usr/share/lingmo-screenlocker/translations)
 

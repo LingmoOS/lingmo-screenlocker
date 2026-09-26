@@ -21,6 +21,7 @@
 #include <QDBusConnection>
 #include <QTranslator>
 #include <QLocale>
+#include <QFile>
 
 int main(int argc, char *argv[])
 {

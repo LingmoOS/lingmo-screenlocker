@@ -20,7 +20,7 @@
 import QtQuick 2.12
 import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
-import LingmoUI 1.0 as CuteUI
+import LingmoUI.CompatibleModule 3.0 as LingmoUI
 
 Item {
     id: control
@@ -55,9 +55,9 @@ Item {
         color: {
             if (mouseArea.containsMouse) {
                 if (mouseArea.containsPress)
-                    return (CuteUI.Theme.darkMode) ? Qt.rgba(255, 255, 255, 0.3) : Qt.rgba(0, 0, 0, 0.2)
+                    return (LingmoUI.Theme.darkMode) ? Qt.rgba(255, 255, 255, 0.3) : Qt.rgba(0, 0, 0, 0.2)
                 else
-                    return (CuteUI.Theme.darkMode) ? Qt.rgba(255, 255, 255, 0.2) : Qt.rgba(0, 0, 0, 0.1)
+                    return (LingmoUI.Theme.darkMode) ? Qt.rgba(255, 255, 255, 0.2) : Qt.rgba(0, 0, 0, 0.1)
             }
 
             return "transparent"

@@ -20,7 +20,7 @@
 import QtQuick 2.12
 import QtQuick.Window 2.3
 import QtQuick.Controls 2.4
-import LingmoUI 1.0 as CuteUI
+import LingmoUI.CompatibleModule 3.0 as LingmoUI
 
 Item {
     id: control
@@ -31,7 +31,7 @@ Item {
     width: size
 
     property alias background: _background
-    property color backgroundColor: CuteUI.Theme.highlightColor
+    property color backgroundColor: LingmoUI.Theme.highlightColor
     property color hoveredColor: Qt.lighter(backgroundColor, 1.1)
     property color pressedColor: Qt.darker(backgroundColor, 1.2)
     property alias source: _image.source
@@ -41,7 +41,7 @@ Item {
     Rectangle {
         id: _background
         anchors.fill: parent
-        // radius: CuteUI.Theme.bigRadius //control.height / 2
+        // radius: LingmoUI.Theme.bigRadius //control.height / 2
         color: mouseArea.pressed ? pressedColor : mouseArea.containsMouse ? control.hoveredColor : control.backgroundColor
 
         gradient: Gradient {
