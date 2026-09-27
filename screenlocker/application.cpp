@@ -22,7 +22,9 @@
 // Qt Core
 #include <QAbstractNativeEventFilter>
 #include <QScreen>
-#include <QX11Info>
+#include <QGuiApplication>
+#include <QKeyEvent>
+#include <QCursor>
 #include <QEvent>
 
 // Qt Quick
@@ -39,6 +41,18 @@
 // Xcb
 #include <xcb/xcb.h>
 
+static Display *x11Display()
+{
+    if (auto x11App = qApp->nativeInterface<QNativeInterface::QX11Application>())
+        return x11App->display();
+    return nullptr;
+}
+
+static bool isPlatformX11()
+{
+    return QGuiApplication::platformName() == QLatin1String("xcb");
+}
+
 // this is usable to fake a "screensaver" installation for testing
 // *must* be "0" for every public commit!
 #define TEST_SCREENSAVER 0
@@ -46,7 +60,7 @@
 class FocusOutEventFilter : public QAbstractNativeEventFilter
 {
 public:
-    bool nativeEventFilter(const QByteArray &eventType, void *message, long int *result) override {
+    bool nativeEventFilter(const QByteArray &eventType, void *message, qintptr *result) override {
         Q_UNUSED(result)
         if (qstrcmp(eventType, "xcb_generic_event_t") != 0) {
             return false;
@@ -74,7 +88,7 @@ Application::Application(int &argc, char **argv)
     connect(this, &Application::screenAdded, this, &Application::onScreenAdded);
     connect(this, &Application::screenRemoved, this, &Application::desktopResized);
 
-    if (QX11Info::isPlatformX11()) {
+    if (isPlatformX11()) {
         installNativeEventFilter(new FocusOutEventFilter);
     }
 }
@@ -83,7 +97,7 @@ Application::~Application()
 {
     // workaround QTBUG-55460
     // will be fixed when themes port to QQC2
-    for (auto view : qAsConst(m_views)) {
+    for (auto view : std::as_const(m_views)) {
         if (QQuickItem *focusItem = view->activeFocusItem()) {
             focusItem->setFocus(false);
         }
@@ -128,7 +142,7 @@ void Application::desktopResized()
         view->setGeometry(screen->geometry());
 
         if (!m_testing) {
-            if (QX11Info::isPlatformX11()) {
+            if (isPlatformX11()) {
                 view->setFlags(Qt::X11BypassWindowManagerHint);
             } else {
                 view->setFlags(Qt::FramelessWindowHint);
@@ -155,7 +169,7 @@ void Application::desktopResized()
         view->setScreen(screen);
 
         // on Wayland we may not use fullscreen as that puts all windows on one screen
-        if (m_testing || QX11Info::isPlatformX11()) {
+        if (m_testing || isPlatformX11()) {
             view->show();
         } else {
             view->showFullScreen();
@@ -219,7 +233,7 @@ void Application::getFocus()
 
     // this loop is required to make the qml/graphicsscene properly handle the shared keyboard input
     // ie. "type something into the box of every greeter"
-    for (QQuickView *view : qAsConst(m_views)) {
+    for (QQuickView *view : std::as_const(m_views)) {
         if (!m_testing) {
             view->setKeyboardGrabEnabled(true); // TODO - check whether this still works in master!
         }
@@ -242,28 +256,38 @@ void Application::markViewsAsVisible(QQuickView *view)
 
     // random state update, actually rather required on init only
     QMetaObject::invokeMethod(this, "getFocus", Qt::QueuedConnection);
+
+    // The lock screen is up: let a finger or the face unlock it without typing anything
+    m_authenticator->startFingerprint();
+    m_authenticator->startFace();
 }
 
 bool Application::eventFilter(QObject *obj, QEvent *event)
 {
     if (obj != this && event->type() == QEvent::Show) {
         QQuickView *view = nullptr;
-        for (QQuickView *v : qAsConst(m_views)) {
+        for (QQuickView *v : std::as_const(m_views)) {
             if (v == obj) {
                 view = v;
                 break;
             }
         }
-        if (view && view->winId() && QX11Info::isPlatformX11()) {
+        Display *dpy = isPlatformX11() ? x11Display() : nullptr;
+        if (view && view->winId() && dpy) {
             // showing greeter view window, set property
-            static Atom tag = XInternAtom(QX11Info::display(), "_KDE_SCREEN_LOCKER", False);
-            XChangeProperty(QX11Info::display(), view->winId(), tag, tag, 32, PropModeReplace, nullptr, 0);
+            static Atom tag = XInternAtom(dpy, "_KDE_SCREEN_LOCKER", False);
+            XChangeProperty(dpy, view->winId(), tag, tag, 32, PropModeReplace, nullptr, 0);
         }
         // no further processing
         return false;
     }
 
-    if (event->type() == QEvent::MouseButtonPress && QX11Info::isPlatformX11()) {
+    if (event->type() == QEvent::KeyPress || event->type() == QEvent::MouseButtonPress
+            || event->type() == QEvent::MouseMove) {
+        m_authenticator->userActivity();
+    }
+
+    if (event->type() == QEvent::MouseButtonPress && isPlatformX11()) {
         if (getActiveScreen()) {
             getActiveScreen()->requestActivate();
         }
@@ -293,7 +317,7 @@ QWindow *Application::getActiveScreen()
         return activeScreen;
     }
 
-    for (QQuickView *view : qAsConst(m_views)) {
+    for (QQuickView *view : std::as_const(m_views)) {
         if (view->geometry().contains(QCursor::pos())) {
             activeScreen = view;
             break;
@@ -317,7 +341,7 @@ void Application::shareEvent(QEvent *e, QQuickView *from)
         // Any change in regarded event processing shall be tested thoroughly!
         removeEventFilter(this); // prevent recursion!
         const bool accepted = e->isAccepted(); // store state
-        for (QQuickView *view : qAsConst(m_views)) {
+        for (QQuickView *view : std::as_const(m_views)) {
             if (view != from) {
                 QCoreApplication::sendEvent(view, e);
                 e->setAccepted(accepted);

@@ -12,7 +12,8 @@ include(CheckTypeSize)
 include(FindPkgConfig)
 
 if (PAM_FOUND)
-    set(KDE4_COMMON_PAM_SERVICE "kde" CACHE STRING "The PAM service to use unless overridden for a particular app.")
+    # Our own PAM service (installed below), so unlocking doesn't depend on KDE's kscreenlocker
+    set(KDE4_COMMON_PAM_SERVICE "lingmo-screenlocker" CACHE STRING "The PAM service to use unless overridden for a particular app.")
 
     macro(define_pam_service APP)
         string(TOUPPER ${APP}_PAM_SERVICE var)

@@ -1,0 +1,20 @@
+#%PAM-1.0
+
+# Fingerprint only: lingmo-screenlocker runs this service next to the password
+# one (lingmo-screenlocker) while /etc/lingmo-fingerprint-enabled exists, so a
+# finger unlocks without typing and the password never waits for the reader.
+# pam_fprintd must stay "required" and without "-": if it were skipped the
+# stack would succeed without any check.
+
+auth       required                    pam_shells.so
+auth       requisite                   pam_nologin.so
+auth       requisite                   pam_faillock.so      preauth
+auth       required                    pam_fprintd.so
+auth       optional                    pam_permit.so
+auth       required                    pam_env.so
+
+account    include                     system-local-login
+
+password   required                    pam_deny.so
+
+session    include                     system-local-login

@@ -1,0 +1,22 @@
+#%PAM-1.0
+
+# Face only: lingmo-screenlocker runs this service next to the password one
+# (lingmo-screenlocker) while /etc/lingmo-face-enabled exists and the user has
+# enrolled a face in Settings, so looking at the camera unlocks without typing
+# and the password never waits for the camera. lingmo-faceauth (lingmo-camera)
+# looks for a few seconds and prints "face:<what>" lines for the lock screen.
+# pam_exec must stay "required" and without "-": if it were skipped the stack
+# would succeed without any check.
+
+auth       required                    pam_shells.so
+auth       requisite                   pam_nologin.so
+auth       requisite                   pam_faillock.so      preauth
+auth       required                    pam_exec.so          quiet stdout /usr/bin/lingmo-faceauth verify --machine
+auth       optional                    pam_permit.so
+auth       required                    pam_env.so
+
+account    include                     system-local-login
+
+password   required                    pam_deny.so
+
+session    include                     system-local-login

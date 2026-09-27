@@ -4,26 +4,47 @@
 <context>
     <name>LockScreen</name>
     <message>
-        <location filename="../screenlocker/qml/LockScreen.qml" line="236"/>
+        <location filename="../screenlocker/qml/LockScreen.qml" line="+223"/>
         <source>Password</source>
         <translation>Senha</translation>
     </message>
     <message>
-        <source>Unlock</source>
-        <translation type="vanished">Desbloquear</translation>
+        <location line="+86"/>
+        <source>Looking for your face…</source>
+        <translation>Olhando para você…</translation>
     </message>
     <message>
-        <location filename="../screenlocker/qml/LockScreen.qml" line="342"/>
-        <source>Set Non-empty Password</source>
-        <translation type="unfinished"></translation>
+        <location line="+2"/>
+        <source>Face not confirmed: move your head a little, or type your password</source>
+        <translation>Rosto não confirmado: mexa um pouco a cabeça ou digite a senha</translation>
     </message>
     <message>
-        <location filename="../screenlocker/qml/LockScreen.qml" line="344"/>
-        <source>Please enter your password</source>
-        <translation>Por favor, insira sua senha</translation>
+        <location line="+2"/>
+        <source>The camera is unavailable. Type your password</source>
+        <translation>Câmera indisponível — digite a senha</translation>
     </message>
     <message>
-        <location filename="../screenlocker/qml/LockScreen.qml" line="372"/>
+        <location line="+2"/>
+        <source>Face not recognized. Type your password</source>
+        <translation>Rosto não reconhecido — digite a senha</translation>
+    </message>
+    <message>
+        <location line="+37"/>
+        <source>Touch the fingerprint reader or type your password</source>
+        <translation>Toque no leitor de digital ou digite a senha</translation>
+    </message>
+    <message>
+        <location line="+77"/>
+        <source>Set non-empty password in tty please!</source>
+        <translation>Defina uma senha não vazia em um terminal (TTY)!</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Please enter your password!</source>
+        <translation>Digite sua senha!</translation>
+    </message>
+    <message>
+        <location line="+20"/>
         <source>Unlocking failed</source>
         <translation>O desbloqueio falhou</translation>
     </message>

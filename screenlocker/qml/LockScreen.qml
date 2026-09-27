@@ -10,11 +10,11 @@ import QtQuick 2.12
 import QtQuick.Window 2.12
 import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
-import QtGraphicalEffects 1.0
+import Qt5Compat.GraphicalEffects
 
 import Lingmo.Accounts 1.0 as Accounts
 import Lingmo.System 1.0 as System
-import LingmoUI 1.0 as CuteUI
+import LingmoUI.CompatibleModule 3.0 as LingmoUI
 
 Item {
     id: root
@@ -34,7 +34,7 @@ Item {
     Image {
         id: wallpaperImage
         anchors.fill: parent
-        source: "file://" + wallpaper.path
+        source: wallpaper.path ? "file://" + wallpaper.path : ""
         sourceSize: Qt.size(width * Screen.devicePixelRatio,
                             height * Screen.devicePixelRatio)
         fillMode: Image.PreserveAspectCrop
@@ -106,7 +106,7 @@ Item {
         Label {
             id: timeLabel
 //            anchors.top: icon.bottom
-//            anchors.topMargin: CuteUI.Units.largeSpacing
+//            anchors.topMargin: LingmoUI.Units.largeSpacing
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.verticalCenter: parent.verticalCenter
             Layout.alignment: Qt.AlignHCenter
@@ -121,7 +121,7 @@ Item {
         Label {
             id: dateLabel
             anchors.top: timeLabel.bottom
-            anchors.topMargin: CuteUI.Units.largeSpacing
+            anchors.topMargin: LingmoUI.Units.largeSpacing
             anchors.horizontalCenter: parent.horizontalCenter
             font.pointSize: 19
             color: "white"
@@ -163,23 +163,23 @@ Item {
     Item {
         id: _mainItem
         anchors.centerIn: parent
-        width: 280 + CuteUI.Units.largeSpacing * 3
-        height: _mainLayout.implicitHeight + CuteUI.Units.largeSpacing * 4
+        width: 280 + LingmoUI.Units.largeSpacing * 3
+        height: _mainLayout.implicitHeight + LingmoUI.Units.largeSpacing * 4
 
         Layout.alignment: Qt.AlignHCenter
 
         Rectangle {
             anchors.fill: parent
-            radius: CuteUI.Theme.bigRadius + 2
-            color: CuteUI.Theme.darkMode ? "#424242" : "white"
+            radius: LingmoUI.Theme.bigRadius + 2
+            color: LingmoUI.Theme.darkMode ? "#424242" : "white"
             opacity: 0.5
         }
 
         ColumnLayout {
             id: _mainLayout
             anchors.fill: parent
-            anchors.margins: CuteUI.Units.largeSpacing * 1.5
-            spacing: CuteUI.Units.smallSpacing * 1.5
+            anchors.margins: LingmoUI.Units.largeSpacing * 1.5
+            spacing: LingmoUI.Units.smallSpacing * 1.5
 
             Image {
                 id: userIcon
@@ -221,16 +221,16 @@ Item {
                 Layout.preferredHeight: 36
                 Layout.fillWidth: true
                 placeholderText: qsTr("Password")
-                leftPadding: CuteUI.Units.largeSpacing
-                rightPadding: 36 + CuteUI.Units.largeSpacing //CuteUI.Units.largeSpacing
+                leftPadding: LingmoUI.Units.largeSpacing
+                rightPadding: 36 + LingmoUI.Units.largeSpacing //LingmoUI.Units.largeSpacing
                 enabled: !authenticator.graceLocked
                 focus: true
 
                 echoMode: TextInput.Password
 
                 background: Rectangle {
-                    color: CuteUI.Theme.darkMode ? "#B6B6B6" : "white"
-                    // radius: CuteUI.Theme.bigRadius
+                    color: LingmoUI.Theme.darkMode ? "#B6B6B6" : "white"
+                    // radius: LingmoUI.Theme.bigRadius
                     opacity: 0.5
                 }
 
@@ -260,9 +260,99 @@ Item {
 
                         Rectangle {
                             anchors.fill: parent
-                            radius: CuteUI.Theme.mediumRadius
+                            radius: LingmoUI.Theme.mediumRadius
                         }
                     }
+                }
+            }
+
+            // Face login is on: the camera looks when the lock shows, and again on
+            // key or mouse input after a failed look
+            RowLayout {
+                visible: authenticator.faceState !== ""
+                spacing: LingmoUI.Units.smallSpacing
+                Layout.alignment: Qt.AlignHCenter
+                Layout.maximumWidth: _mainLayout.width
+                Layout.topMargin: LingmoUI.Units.smallSpacing
+
+                Item {
+                    Layout.preferredWidth: 16
+                    Layout.preferredHeight: 16
+
+                    Image {
+                        id: faceIcon
+                        anchors.fill: parent
+                        source: "qrc:/images/face-symbolic.svg"
+                        sourceSize: Qt.size(16, 16)
+                        visible: false
+                    }
+
+                    ColorOverlay {
+                        anchors.fill: faceIcon
+                        source: faceIcon
+                        color: LingmoUI.Theme.textColor
+
+                        SequentialAnimation on opacity {
+                            running: authenticator.faceState === "looking"
+                            loops: Animation.Infinite
+                            alwaysRunToEnd: true
+                            NumberAnimation { from: 1; to: 0.35; duration: 700; easing.type: Easing.InOutQuad }
+                            NumberAnimation { from: 0.35; to: 1; duration: 700; easing.type: Easing.InOutQuad }
+                        }
+                    }
+                }
+
+                Label {
+                    text: {
+                        switch (authenticator.faceState) {
+                        case "looking":
+                            return qsTr("Looking for your face…")
+                        case "liveness":
+                            return qsTr("Face not confirmed: move your head a little, or type your password")
+                        case "unavailable":
+                            return qsTr("The camera is unavailable. Type your password")
+                        default:
+                            return qsTr("Face not recognized. Type your password")
+                        }
+                    }
+                    wrapMode: Text.WordWrap
+                    horizontalAlignment: Text.AlignHCenter
+                    Layout.maximumWidth: _mainLayout.width - 16 - LingmoUI.Units.smallSpacing
+                }
+            }
+
+            // Fingerprint login is on: the finger works without typing anything
+            RowLayout {
+                visible: authenticator.fingerprintAvailable
+                spacing: LingmoUI.Units.smallSpacing
+                Layout.alignment: Qt.AlignHCenter
+                Layout.maximumWidth: _mainLayout.width
+                Layout.topMargin: LingmoUI.Units.smallSpacing
+
+                Item {
+                    Layout.preferredWidth: 16
+                    Layout.preferredHeight: 16
+
+                    Image {
+                        id: fingerprintIcon
+                        anchors.fill: parent
+                        source: "qrc:/images/fingerprint-symbolic.svg"
+                        sourceSize: Qt.size(16, 16)
+                        visible: false
+                    }
+
+                    ColorOverlay {
+                        anchors.fill: fingerprintIcon
+                        source: fingerprintIcon
+                        color: LingmoUI.Theme.textColor
+                    }
+                }
+
+                Label {
+                    text: qsTr("Touch the fingerprint reader or type your password")
+                    wrapMode: Text.WordWrap
+                    horizontalAlignment: Text.AlignHCenter
+                    Layout.maximumWidth: _mainLayout.width - 16 - LingmoUI.Units.smallSpacing
                 }
             }
 
@@ -275,7 +365,7 @@ Item {
     Label {
         id: message
         anchors.top: _mainItem.bottom
-        anchors.topMargin: CuteUI.Units.largeSpacing
+        anchors.topMargin: LingmoUI.Units.largeSpacing
         anchors.horizontalCenter: parent.horizontalCenter
         font.bold: true
         color: "white"
@@ -306,12 +396,12 @@ Item {
 
     Item {
         // anchors.top: message.bottom
-        // anchors.topMargin: CuteUI.Units.largeSpacing
+        // anchors.topMargin: LingmoUI.Units.largeSpacing
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: root.height * 0.05 //CuteUI.Units.largeSpacing
+        anchors.bottomMargin: root.height * 0.05 //LingmoUI.Units.largeSpacing
         anchors.horizontalCenter: parent.horizontalCenter
 
-        width: 280 + CuteUI.Units.largeSpacing * 3
+        width: 280 + LingmoUI.Units.largeSpacing * 3
         height: 70
 
         MprisItem {
@@ -376,6 +466,12 @@ Item {
 
         function onError(text) {
             notificationResetTimer.start()
+            root.notification = text
+        }
+
+        // pam_fprintd: "Failed to match fingerprint" and the like
+        function onFingerprintError(text) {
+            notificationResetTimer.restart()
             root.notification = text
         }
     }
