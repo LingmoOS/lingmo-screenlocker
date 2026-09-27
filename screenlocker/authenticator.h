@@ -38,12 +38,17 @@ class Authenticator : public QObject
     Q_PROPERTY(bool graceLocked READ isGraceLocked NOTIFY graceLockedChanged)
     // Fingerprint login is enabled and a fingerprint conversation is running
     Q_PROPERTY(bool fingerprintAvailable READ isFingerprintAvailable NOTIFY fingerprintAvailableChanged)
+    // Face login (webcam): "" when off or given up, "looking" while the camera
+    // looks, then "failed", "liveness" (the face didn't move) or "unavailable"
+    // (no camera, or another program uses it)
+    Q_PROPERTY(QString faceState READ faceState NOTIFY faceStateChanged)
 public:
     explicit Authenticator(AuthenticationMode mode = AuthenticationMode::Direct, QObject *parent = nullptr);
     ~Authenticator() override;
 
     bool isGraceLocked() const;
     bool isFingerprintAvailable() const;
+    QString faceState() const { return m_faceState; }
 
 public Q_SLOTS:
     void tryUnlock(const QString &password);
@@ -52,7 +57,13 @@ public Q_SLOTS:
     // password one when /etc/lingmo-fingerprint-enabled exists, so a finger
     // unlocks without typing anything. Restarted after each attempt.
     void startFingerprint();
-    // Key or mouse input: restarts the fingerprint conversation if it went idle.
+    // Runs the "lingmo-screenlocker-face" PAM service (lingmo-faceauth through
+    // pam_exec) next to the password one when /etc/lingmo-face-enabled exists
+    // and the user enrolled a face. One look of a few seconds; another one only
+    // after key or mouse input (userActivity), so the camera isn't kept on.
+    void startFace();
+    // Key or mouse input: restarts the fingerprint conversation if it went idle,
+    // and looks for the face again if the last look ended a while ago.
     void userActivity();
 
 Q_SIGNALS:
@@ -63,10 +74,14 @@ Q_SIGNALS:
     void error(const QString &err); // don't remove the "err" param, used in QML!!!
     void fingerprintAvailableChanged();
     void fingerprintError(const QString &err); // e.g. "Failed to match fingerprint", used in QML
+    void faceStateChanged();
 
 private:
     void setupCheckPass();
     void onFingerprintFailed();
+    void onFaceFailed();
+    void onFaceMessage(const QString &msg);
+    void setFaceState(const QString &state);
     QTimer *m_graceLockTimer;
     KCheckPass *m_checkPass;
 
@@ -76,6 +91,14 @@ private:
     int m_fingerprintQuickFailures = 0;
     int m_fingerprintRounds = 0;
     bool m_fingerprintDisabled = false;
+
+    KCheckPass *m_face = nullptr;
+    QString m_faceState;
+    QString m_faceResult;
+    QElapsedTimer m_faceElapsed;
+    QElapsedTimer m_faceEnded;
+    int m_faceRounds = 0;
+    bool m_faceDisabled = false;
 };
 
 class KCheckPass : public QObject

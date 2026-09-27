@@ -257,8 +257,9 @@ void Application::markViewsAsVisible(QQuickView *view)
     // random state update, actually rather required on init only
     QMetaObject::invokeMethod(this, "getFocus", Qt::QueuedConnection);
 
-    // The lock screen is up: let a finger unlock it without typing anything
+    // The lock screen is up: let a finger or the face unlock it without typing anything
     m_authenticator->startFingerprint();
+    m_authenticator->startFace();
 }
 
 bool Application::eventFilter(QObject *obj, QEvent *event)

@@ -54,8 +54,10 @@ include(ConfigureChecks.cmake)
 
 # PAM service used to check the password (see ConfigureChecks.cmake)
 if (PAM_FOUND)
-    # Fingerprint-only service, run next to the password one when fingerprint login is on
-    install(FILES pam/lingmo-screenlocker pam/lingmo-screenlocker-fingerprint DESTINATION ${CMAKE_INSTALL_FULL_SYSCONFDIR}/pam.d)
+    # Fingerprint-only and face-only services, run next to the password one when
+    # fingerprint or face login is on
+    install(FILES pam/lingmo-screenlocker pam/lingmo-screenlocker-fingerprint pam/lingmo-screenlocker-face
+            DESTINATION ${CMAKE_INSTALL_FULL_SYSCONFDIR}/pam.d)
 endif()
 
 configure_file(config-workspace.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-workspace.h)

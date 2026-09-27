@@ -266,6 +266,61 @@ Item {
                 }
             }
 
+            // Face login is on: the camera looks when the lock shows, and again on
+            // key or mouse input after a failed look
+            RowLayout {
+                visible: authenticator.faceState !== ""
+                spacing: LingmoUI.Units.smallSpacing
+                Layout.alignment: Qt.AlignHCenter
+                Layout.maximumWidth: _mainLayout.width
+                Layout.topMargin: LingmoUI.Units.smallSpacing
+
+                Item {
+                    Layout.preferredWidth: 16
+                    Layout.preferredHeight: 16
+
+                    Image {
+                        id: faceIcon
+                        anchors.fill: parent
+                        source: "qrc:/images/face-symbolic.svg"
+                        sourceSize: Qt.size(16, 16)
+                        visible: false
+                    }
+
+                    ColorOverlay {
+                        anchors.fill: faceIcon
+                        source: faceIcon
+                        color: LingmoUI.Theme.textColor
+
+                        SequentialAnimation on opacity {
+                            running: authenticator.faceState === "looking"
+                            loops: Animation.Infinite
+                            alwaysRunToEnd: true
+                            NumberAnimation { from: 1; to: 0.35; duration: 700; easing.type: Easing.InOutQuad }
+                            NumberAnimation { from: 0.35; to: 1; duration: 700; easing.type: Easing.InOutQuad }
+                        }
+                    }
+                }
+
+                Label {
+                    text: {
+                        switch (authenticator.faceState) {
+                        case "looking":
+                            return qsTr("Looking for your face…")
+                        case "liveness":
+                            return qsTr("Face not confirmed: move your head a little, or type your password")
+                        case "unavailable":
+                            return qsTr("The camera is unavailable. Type your password")
+                        default:
+                            return qsTr("Face not recognized. Type your password")
+                        }
+                    }
+                    wrapMode: Text.WordWrap
+                    horizontalAlignment: Text.AlignHCenter
+                    Layout.maximumWidth: _mainLayout.width - 16 - LingmoUI.Units.smallSpacing
+                }
+            }
+
             // Fingerprint login is on: the finger works without typing anything
             RowLayout {
                 visible: authenticator.fingerprintAvailable

@@ -9,7 +9,27 @@
         <translation>Senha</translation>
     </message>
     <message>
-        <location line="+74"/>
+        <location line="+86"/>
+        <source>Looking for your face…</source>
+        <translation>Olhando para você…</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Face not confirmed: move your head a little, or type your password</source>
+        <translation>Rosto não confirmado: mexa um pouco a cabeça ou digite a senha</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>The camera is unavailable. Type your password</source>
+        <translation>Câmera indisponível — digite a senha</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Face not recognized. Type your password</source>
+        <translation>Rosto não reconhecido — digite a senha</translation>
+    </message>
+    <message>
+        <location line="+37"/>
         <source>Touch the fingerprint reader or type your password</source>
         <translation>Toque no leitor de digital ou digite a senha</translation>
     </message>

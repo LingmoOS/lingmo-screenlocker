@@ -26,12 +26,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // Qt
 #include <QCoreApplication>
+#include <QDir>
 #include <QFile>
 #include <QSocketNotifier>
 #include <QTimer>
 
 // system
 #include <errno.h>
+#include <pwd.h>
 #include <signal.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -54,6 +56,35 @@ constexpr int MaxQuickFailures = 3;
 // pam_fprintd gives up after ~30 s or three wrong fingers. Restart it on our own
 // this many times, then wait for key or mouse input (saves the reader's power).
 constexpr int MaxIdleRounds = 10;
+
+// Written by lingmo-settings' face-pam helper when face login is on.
+QString faceMarker()
+{
+    const QString path = qEnvironmentVariable("LINGMO_FACE_MARKER");
+    return path.isEmpty() ? QStringLiteral("/etc/lingmo-face-enabled") : path;
+}
+
+// The user's enrolled face (lingmo-faceauth enroll, from Settings)
+QString faceStore()
+{
+    const QString path = qEnvironmentVariable("LINGMO_FACE_STORE");
+    if (!path.isEmpty())
+        return path;
+    const passwd *pw = ::getpwuid(::getuid());
+    if (!pw || !pw->pw_dir)
+        return QString();
+    return QFile::decodeName(pw->pw_dir) + QStringLiteral("/.local/share/lingmoos/face/")
+        + QString::fromLocal8Bit(pw->pw_name) + QStringLiteral(".dat");
+}
+
+// A face look that ended this fast without a word from lingmo-faceauth never
+// ran (PAM service or lingmo-faceauth missing, account locked by faillock): the
+// face is given up until the next lock.
+constexpr qint64 FaceQuickFailureMs = 1500;
+// Look again on key or mouse input only this long after the last look ended...
+constexpr qint64 FaceRetryMs = 5000;
+// ...and not more often than this per lock.
+constexpr int MaxFaceRounds = 10;
 }
 
 Authenticator::Authenticator(AuthenticationMode mode, QObject *parent)
@@ -185,6 +216,90 @@ void Authenticator::userActivity()
     if (!m_fingerprint && !m_fingerprintRestartTimer->isActive()) {
         startFingerprint();
     }
+    if (!m_face && !m_faceDisabled && !m_faceState.isEmpty() && m_faceEnded.isValid()
+            && m_faceEnded.elapsed() >= FaceRetryMs) {
+        startFace();
+    }
+}
+
+void Authenticator::setFaceState(const QString &state)
+{
+    if (m_faceState != state) {
+        m_faceState = state;
+        Q_EMIT faceStateChanged();
+    }
+}
+
+void Authenticator::startFace()
+{
+    if (m_face || m_faceDisabled || m_faceRounds >= MaxFaceRounds || !QFile::exists(faceMarker())) {
+        return;
+    }
+    const QString store = faceStore();
+    if (store.isEmpty() || !QFile::exists(store)) {
+        return;
+    }
+
+    ++m_faceRounds;
+    m_faceResult.clear();
+    m_face = new KCheckPass(AuthenticationMode::Direct, this, QStringLiteral("face"));
+    connect(m_face, &KCheckPass::succeeded, this, &Authenticator::succeeded);
+    connect(m_face, &KCheckPass::failed, this, &Authenticator::onFaceFailed);
+    // lingmo-faceauth's "face:<what>" lines (verify --machine), through pam_exec
+    connect(m_face, &KCheckPass::message, this, &Authenticator::onFaceMessage);
+    connect(m_face, &KCheckPass::error, this, &Authenticator::onFaceMessage);
+    connect(m_face, &KCheckPass::destroyed, this, [this](QObject *object) {
+        if (m_face == object) {
+            m_face = nullptr;
+        }
+    });
+
+    m_faceElapsed.start();
+    m_face->start();
+    setFaceState(QStringLiteral("looking"));
+}
+
+void Authenticator::onFaceMessage(const QString &msg)
+{
+    const QString line = msg.trimmed();
+    if (!line.startsWith(QLatin1String("face:"))) {
+        return;
+    }
+    const QString what = line.mid(5);
+    if (what == QLatin1String("looking")) {
+        setFaceState(QStringLiteral("looking"));
+    } else if (what == QLatin1String("nomatch")) {
+        m_faceResult = QStringLiteral("failed");
+    } else if (what == QLatin1String("liveness")) {
+        m_faceResult = QStringLiteral("liveness");
+    } else if (what == QLatin1String("busy") || what == QLatin1String("nocamera")) {
+        m_faceResult = QStringLiteral("unavailable");
+    } else if (what == QLatin1String("noenroll") || what == QLatin1String("remote") || what == QLatin1String("error")) {
+        // Nothing to retry until the next lock
+        m_faceResult = QStringLiteral("off");
+    }
+}
+
+void Authenticator::onFaceFailed()
+{
+    // The KCheckPass deletes itself (direct mode).
+    if (m_face) {
+        disconnect(m_face, nullptr, this, nullptr);
+        m_face = nullptr;
+    }
+    m_faceEnded.start();
+
+    if (m_faceResult == QLatin1String("off")) {
+        m_faceDisabled = true;
+        setFaceState(QString());
+        return;
+    }
+    if (m_faceResult.isEmpty() && m_faceElapsed.elapsed() < FaceQuickFailureMs) {
+        m_faceDisabled = true;
+        setFaceState(QString());
+        return;
+    }
+    setFaceState(m_faceResult.isEmpty() ? QStringLiteral("failed") : m_faceResult);
 }
 
 KCheckPass::KCheckPass(AuthenticationMode mode, QObject *parent, const QString &method)
